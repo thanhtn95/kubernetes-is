@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ template "is-pattern-1.resource.prefix" . }}-identity-server-ingress
@@ -26,11 +26,15 @@ spec:
   tls:
   - hosts:
     - {{ .Values.wso2.deployment.wso2is.ingress.identity.hostname }}
+    secretName: {{ .Values.wso2.deployment.wso2is.ingress.identity.hostname }}-tls
   rules:
   - host: {{ .Values.wso2.deployment.wso2is.ingress.identity.hostname }}
     http:
       paths:
       - path: /
+        pathType: ImplementationSpecific
         backend:
-          serviceName: {{ template "is-pattern-1.resource.prefix" . }}-identity-service
-          servicePort: 9443
+          service:
+            name: {{ template "is-pattern-1.resource.prefix" . }}-identity-service
+            port:
+              name: servlet-http
