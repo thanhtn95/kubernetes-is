@@ -53,6 +53,42 @@ spec:
           volumeMounts:
             - name: mysql-connector-jar
               mountPath: /mysql-connector-jar
+        - name: init-wso2iskey-download
+          image: busybox:1.32
+          command:
+            - /bin/sh
+            - "-c"
+            - |
+              set -e
+              connector_version=8.0.17
+              wget https://repo1.maven.org/maven2/org/wso2/km/ext/wso2is/wso2is.key.manager.core/1.2.10/wso2is.key.manager.core-1.2.10.jar -P /mysql-connector-jar/
+          volumeMounts:
+            - name: mysql-connector-jar
+              mountPath: /mysql-connector-jar
+        - name: init-wso2notificationkey-download
+          image: busybox:1.32
+          command:
+            - /bin/sh
+            - "-c"
+            - |
+              set -e
+              connector_version=8.0.17
+              wget https://repo1.maven.org/maven2/org/wso2/km/ext/wso2is/wso2is.notification.event.handlers/1.2.10/wso2is.notification.event.handlers-1.2.10.jar -P /mysql-connector-jar/
+          volumeMounts:
+            - name: mysql-connector-jar
+              mountPath: /mysql-connector-jar
+        - name: init-wso2notificationwar-download
+          image: busybox:1.32
+          command:
+            - /bin/sh
+            - "-c"
+            - |
+              set -e
+              connector_version=8.0.17
+              wget https://github.com/zonesama/laundry_online_be/raw/master/keymanager-operations.war -P /keymanager-war/
+          volumeMounts:
+            - name: keymanager-war
+              mountPath: /keymanager-war
         {{ end }}
         {{ if .Values.wso2.centralizedLogging.enabled }}
         - name: init-elasticsearch
@@ -128,6 +164,8 @@ spec:
               subPath: deployment.toml
             - name: identity-server-bin
               mountPath: /home/wso2carbon/wso2-config-volume/bin
+            - name: keymanager-war
+              mountPath: /home/wso2carbon/wso2-artifact-volume/repository/deployment/server/webapps
             {{ if .Values.wso2.deployment.dependencies.mysql }}
             - name: mysql-connector-jar
               mountPath: /home/wso2carbon/wso2-artifact-volume/repository/components/dropins
@@ -223,6 +261,8 @@ spec:
         configMap:
           name: {{ template "is-pattern-1.resource.prefix" . }}-identity-server-conf-prometheus-exporter
       {{ end }}
+      - name: keymanager-war
+        emptyDir: { }
       {{ if .Values.wso2.deployment.dependencies.mysql }}
       - name: mysql-connector-jar
         emptyDir: {}

@@ -55,24 +55,30 @@ data:
     proxyPort="443"
 
     [database.identity_db]
-    url="jdbc:mysql://wso2is-mysql-db-service:3306/WSO2IS_IDENTITY_DB?autoReconnect=true&amp;useSSL=false"
-    username="wso2carbon"
-    password="wso2carbon"
-    driver="com.mysql.cj.jdbc.Driver"
+    type = "mysql"
+    url = "jdbc:mysql://wso2am-mysql-db-service:3306/WSO2AM_DB?useSSL=false&amp;autoReconnect=true&amp;requireSSL=false&amp;verifyServerCertificate=false"
+    username = "wso2carbon"
+    password = "wso2carbon"
+    driver = "com.mysql.cj.jdbc.Driver"
 
     [database.identity_db.pool_options]
     validationQuery="SELECT 1"
 
     [database.shared_db]
-    url="jdbc:mysql://wso2is-mysql-db-service:3306/WSO2IS_SHARED_DB?autoReconnect=true&amp;useSSL=false"
-    username="wso2carbon"
-    password="wso2carbon"
-    driver="com.mysql.cj.jdbc.Driver"
+    type = "mysql"
+    url = "jdbc:mysql://wso2am-mysql-db-service:3306/WSO2AM_SHARED_DB?useSSL=false&amp;autoReconnect=true&amp;requireSSL=false&amp;verifyServerCertificate=false"
+    username = "wso2carbon"
+    password = "wso2carbon"
+    driver = "com.mysql.cj.jdbc.Driver"
 
     [truststore]
     file_name="client-truststore.jks"
     password="wso2carbon"
     type="JKS"
+
+    [oauth.token_cleanup]
+    enable = true
+    retain_access_tokens_for_auditing = true
 
     [account_recovery.endpoint.auth]
     hash= "66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"
@@ -109,6 +115,92 @@ data:
     [keystore.primary]
     name="wso2carbon.jks"
     password="wso2carbon"
+
+    [cors]
+    allow_generic_http_requests = true
+    allow_any_origin = true
+    allowed_origins = [
+        "*"
+    ]
+    allow_subdomains = true
+    supported_methods = [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "HEAD",
+        "OPTIONS"
+    ]
+    support_any_header = true
+    supported_headers = []
+    exposed_headers = []
+    supports_credentials = true
+    max_age = 3600
+    tag_requests = false
+
+    [[event_listener]]
+    id = "token_revocation"
+    type = "org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+    name = "org.wso2.is.notification.ApimOauthEventInterceptor"
+    order = 1
+
+    [[resource.access_control]]
+    context = "(.)/keymanager-operations/user-info/claims(.)"
+    secure = true
+    http_method = "GET"
+    permissions = "/permission/admin/manage/identity/usermgt/list"
+    scopes = "internal_user_mgt_list"
+
+    [[resource.access_control]]
+    context = "(.*)/keymanager-operations/user-info/claims/generate"
+    secure = true
+    http_method = "POST"
+    permissions = "/permission/admin/manage/identity/usermgt/list"
+    scopes = "internal_user_mgt_list"
+
+    [[resource.access_control]]
+    context = "(.*)/keymanager-operations/dcr/register"
+    secure = true
+    http_method = "POST"
+    permissions = "/permission/admin/manage/identity/applicationmgt/create"
+    scopes = "internal_application_mgt_create"
+
+    [[resource.access_control]]
+    context = "(.*)/keymanager-operations/dcr/register(.*)"
+    secure = true
+    http_method = "GET"
+    permissions = "/permission/admin/manage/identity/applicationmgt/view"
+    scopes = "internal_application_mgt_view"
+
+    [[resource.access_control]]
+    context = "(.*)/keymanager-operations/dcr/register(.*)"
+    secure = true
+    http_method = "DELETE"
+    permissions = "/permission/admin/manage/identity/applicationmgt/delete"
+    scopes = "internal_application_mgt_delete"
+
+    [[resource.access_control]]
+    context = "(.*)/keymanager-operations/dcr/register(.*)"
+    secure = true
+    http_method = "PUT"
+    permissions = "/permission/admin/manage/identity/applicationmgt/update"
+    scopes = "internal_application_mgt_update"
+
+    [[resource.access_control]]
+    context = "(.)/keymanager-operations/dcr/register(.)"
+    secure = true
+    http_method = "POST"
+    permissions = "/permission/admin/manage/identity/applicationmgt/update"
+    scopes = "internal_application_mgt_update"
+
+    [tenant_context.rewrite]
+    custom_webapps = ["/keymanager-operations/"]
+
+    [event_listener.properties]
+    notification_endpoint = "https://wso2am-single-node-am-service:9443/internal/data/v1/notify"
+    username = "${admin.username}"
+    password = "${admin.password}"
+    'header.X-WSO2-KEY-MANAGER' = "WSO2-IS"
 
     [clustering]
     membership_scheme="kubernetes"
